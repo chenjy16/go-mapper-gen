@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//gobatis.org//DTD Mapper 3.0//EN" "http://gobatis.org/dtd/gobatis-3-mapper.dtd">
+
+<mapper namespace="UsersDAO">
+
+    <!-- 结果映射 -->
+    <resultMap id="UsersResultMap" type="Users">
+        
+        
+        <id property="Id" column="id" />
+        
+        
+        
+        <result property="Username" column="username" />
+        
+        
+        
+        <result property="Email" column="email" />
+        
+        
+        
+        <result property="Password" column="password" />
+        
+        
+        
+        <result property="Phone" column="phone" />
+        
+        
+        
+        <result property="Avatar" column="avatar" />
+        
+        
+        
+        <result property="Status" column="status" />
+        
+        
+        
+        <result property="CreatedAt" column="created_at" />
+        
+        
+        
+        <result property="UpdatedAt" column="updated_at" />
+        
+        
+    </resultMap>
+
+    <!-- 基础字段列表 -->
+    <sql id="Base_Column_List">
+        id, username, email, password, phone, avatar, status, created_at, updated_at
+    </sql>
+
+    <!-- 插入字段列表（不包含主键） -->
+    <sql id="Insert_Column_List">username, email, password, phone, avatar, status, created_at, updated_at
+    </sql>
+
+    <!-- 插入值列表（不包含主键） -->
+    <sql id="Insert_Value_List">#{Username}, #{Email}, #{Password}, #{Phone}, #{Avatar}, #{Status}, #{CreatedAt}, #{UpdatedAt}
+    </sql>
+
+    <!-- 更新字段列表（不包含主键） -->
+    <sql id="Update_Set_List">username = #{Username}, email = #{Email}, password = #{Password}, phone = #{Phone}, avatar = #{Avatar}, status = #{Status}, created_at = #{CreatedAt}, updated_at = #{UpdatedAt}
+    </sql>
+
+    <!-- Insert 方法 - 插入操作 -->
+    <!-- Insert 插入单个Users记录 -->
+    <insert id="Insert" parameterType="Users">
+        INSERT INTO users (
+            <include refid="Insert_Column_List" />
+        ) VALUES (
+            <include refid="Insert_Value_List" />
+        )
+    </insert>
+
+    <!-- InsertBatch 批量插入Users记录 -->
+    <insert id="InsertBatch" parameterType="map">
+        INSERT INTO users (
+            <include refid="Insert_Column_List" />
+        ) VALUES
+        <foreach collection="records" item="item" separator=",">
+            (#{item.Username}, #{item.Email}, #{item.Password}, #{item.Phone}, #{item.Avatar}, #{item.Status}, #{item.CreatedAt}, #{item.UpdatedAt})
+        </foreach>
+    </insert>
+
+    <!-- 兼容性方法 - Create -->
+    <insert id="Create" parameterType="Users">
+        INSERT INTO users (
+            <include refid="Insert_Column_List" />
+        ) VALUES (
+            <include refid="Insert_Value_List" />
+        )
+    </insert>
+
+    <!-- 兼容性方法 - CreateBatch -->
+    <insert id="CreateBatch" parameterType="map">
+        INSERT INTO users (
+            <include refid="Insert_Column_List" />
+        ) VALUES
+        <foreach collection="Items" item="item" separator=",">
+            (#{item.Username}, #{item.Email}, #{item.Password}, #{item.Phone}, #{item.Avatar}, #{item.Status}, #{item.CreatedAt}, #{item.UpdatedAt})
+        </foreach>
+    </insert>
+
+    <!-- Select 方法 - 查询操作 -->
+
+    <!-- SelectById 根据ID查询Users记录 -->
+    <select id="SelectById" parameterType="*int" resultMap="UsersResultMap">
+        SELECT 
+            <include refid="Base_Column_List" />
+        FROM users
+        WHERE id = #{Id}
+    </select>
+
+
+    <!-- SelectAll 查询所有Users记录 -->
+    <select id="SelectAll" resultMap="UsersResultMap">
+        SELECT 
+            <include refid="Base_Column_List" />
+        FROM users
+        ORDER BY id
+    </select>
+
+    <!-- SelectByPage 分页查询Users记录 -->
+    <select id="SelectByPage" parameterType="map" resultMap="UsersResultMap">
+        SELECT 
+            <include refid="Base_Column_List" />
+        FROM users
+        ORDER BY id
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- SelectByCondition 根据条件查询Users记录 -->
+    <select id="SelectByCondition" parameterType="map" resultMap="UsersResultMap">
+        SELECT 
+            <include refid="Base_Column_List" />
+        FROM users
+        <where>
+            <if test="condition != null and condition != ''">
+                ${condition}
+            </if>
+        </where>
+        ORDER BY id
+    </select>
+
+    <!-- Update 方法 - 更新操作 -->
+
+    <!-- UpdateById 根据ID更新Users记录 -->
+    <update id="UpdateById" parameterType="Users">
+        UPDATE users
+        SET <include refid="Update_Set_List" />
+        WHERE id = #{Id}
+    </update>
+
+
+    <!-- Delete 方法 - 删除操作 -->
+
+    <!-- DeleteById 根据ID删除Users记录 -->
+    <delete id="DeleteById" parameterType="*int">
+        DELETE FROM users
+        WHERE id = #{Id}
+    </delete>
+
+    <!-- DeleteByIds 根据ID列表批量删除Users记录 -->
+    <delete id="DeleteByIds" parameterType="map">
+        DELETE FROM users
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!-- ExistsById 检查指定ID的Users记录是否存在 -->
+    <select id="ExistsById" parameterType="*int" resultType="bool">
+        SELECT COUNT(1) > 0
+        FROM users
+        WHERE id = #{Id}
+    </select>
+
+
+    <!-- Count 方法 - 计数操作 -->
+    <!-- Count 获取Users记录总数 -->
+    <select id="Count" resultType="int64">
+        SELECT COUNT(1)
+        FROM users
+    </select>
+
+    <!-- CountByCondition 根据条件获取Users记录数量 -->
+    <select id="CountByCondition" parameterType="map" resultType="int64">
+        SELECT COUNT(1)
+        FROM users
+        <where>
+            <if test="condition != null and condition != ''">
+                ${condition}
+            </if>
+        </where>
+    </select>
+
+    <!-- 兼容性方法 -->
+
+    <!-- 兼容性方法 - GetByID -->
+    <select id="GetByID" parameterType="*int" resultMap="UsersResultMap">
+        SELECT 
+            <include refid="Base_Column_List" />
+        FROM users
+        WHERE id = #{Id}
+    </select>
+
+    <!-- 兼容性方法 - UpdateByID -->
+    <update id="UpdateByID" parameterType="Users">
+        UPDATE users
+        SET <include refid="Update_Set_List" />
+        WHERE id = #{Id}
+    </update>
+
+    <!-- 兼容性方法 - DeleteByID -->
+    <delete id="DeleteByID" parameterType="*int">
+        DELETE FROM users
+        WHERE id = #{Id}
+    </delete>
+
+    <!-- 兼容性方法 - DeleteByIDs -->
+    <delete id="DeleteByIDs" parameterType="map">
+        DELETE FROM users
+        WHERE id IN
+        <foreach collection="IDs" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!-- 兼容性方法 - Exists -->
+    <select id="Exists" parameterType="*int" resultType="int64">
+        SELECT COUNT(1)
+        FROM users
+        WHERE id = #{Id}
+    </select>
+
+
+    <!-- 兼容性方法 - GetAll -->
+    <select id="GetAll" resultMap="UsersResultMap">
+        SELECT 
+            <include refid="Base_Column_List" />
+        FROM users
+        ORDER BY id
+    </select>
+
+    <!-- 兼容性方法 - GetByPage -->
+    <select id="GetByPage" parameterType="map" resultMap="UsersResultMap">
+        SELECT 
+            <include refid="Base_Column_List" />
+        FROM users
+        ORDER BY id
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 兼容性方法 - FindByCondition -->
+    <select id="FindByCondition" parameterType="map" resultMap="UsersResultMap">
+        SELECT 
+            <include refid="Base_Column_List" />
+        FROM users
+        <where>
+            
+            <if test="Id != null">
+                AND id = #{Id}
+            </if>
+            
+            <if test="Username != null and Username != ''">
+                AND username = #{Username}
+            </if>
+            
+            <if test="Email != null and Email != ''">
+                AND email = #{Email}
+            </if>
+            
+            <if test="Password != null and Password != ''">
+                AND password = #{Password}
+            </if>
+            
+            <if test="Phone != null">
+                AND phone = #{Phone}
+            </if>
+            
+            <if test="Avatar != null">
+                AND avatar = #{Avatar}
+            </if>
+            
+            <if test="Status != null">
+                AND status = #{Status}
+            </if>
+            
+            <if test="CreatedAt != null">
+                AND created_at = #{CreatedAt}
+            </if>
+            
+            <if test="UpdatedAt != null">
+                AND updated_at = #{UpdatedAt}
+            </if>
+            
+        </where>
+        ORDER BY id
+    </select>
+
+</mapper>

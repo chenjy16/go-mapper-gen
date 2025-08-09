@@ -1,0 +1,17 @@
+database:
+  driver: mysql
+  dsn: "root:password@tcp(localhost:3306)/test_db"
+
+output:
+  dir: "./generated"
+  package: "model"
+
+tables:
+  include: ["users", "orders", "products"]
+  exclude: ["temp_*", "log_*"]
+  prefix: "t_"
+
+options:
+  generate_dao: true
+  generate_sql: true
+  json_tag: true

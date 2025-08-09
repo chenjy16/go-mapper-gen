@@ -1,0 +1,17 @@
+database:
+  driver: sqlite
+  dsn: "./test.db"
+
+output:
+  dir: "./generated"
+  package: "model"
+
+tables:
+  include: ["users", "products", "orders"]
+  exclude: []
+  prefix: ""
+
+options:
+  generate_dao: true
+  generate_sql: true
+  json_tag: true
