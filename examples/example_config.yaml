@@ -1,0 +1,18 @@
+database:
+  driver: sqlite
+  dsn: "./example.db"
+
+output:
+  dir: "./generated"
+  package: "model"
+
+tables:
+  include: ["users", "products", "orders", "order_items"]
+  exclude: []
+  prefix: ""
+
+options:
+  generate_dao: true
+  generate_sql: true
+  json_tag: true
+  generate_example: true  # 启用 Example 功能，支持复杂查询

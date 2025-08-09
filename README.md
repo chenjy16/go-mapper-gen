@@ -51,6 +51,8 @@ options:
   generate_dao: true    # 生成 DAO 层代码
   generate_sql: true    # 生成 SQL 语句
   json_tag: true        # 生成 JSON 标签
+  generate_example: true # 生成 Example 方法
+  namespace_format: "{struct}DAO"  # XML namespace 格式，支持 {struct} 占位符
 ```
 
 然后运行：
@@ -449,6 +451,64 @@ go-mapper-gen/
 本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
 
 ## 配置说明
+
+### 配置选项详解
+
+#### Database 配置
+- `driver`: 数据库驱动类型 (mysql, postgres, sqlite)
+- `dsn`: 数据库连接字符串
+
+#### Output 配置
+- `dir`: 代码输出目录
+- `package`: 生成代码的包名
+
+#### Tables 配置
+- `include`: 包含的表名列表，为空则包含所有表
+- `exclude`: 排除的表名列表
+- `prefix`: 表名前缀，生成结构体时会移除此前缀
+
+#### Options 配置
+- `generate_dao`: 是否生成 DAO 层代码 (默认: true)
+- `generate_sql`: 是否生成 SQL 文件 (默认: true)
+- `json_tag`: 是否生成 JSON 标签 (默认: true)
+- `generate_example`: 是否生成 Example 方法 (默认: true)
+- `namespace_format`: XML namespace 格式模板 (默认: "{struct}DAO")
+
+#### XML Namespace 自定义
+
+`namespace_format` 配置项允许你自定义 XML 映射文件中的 namespace 格式。支持以下占位符：
+
+- `{struct}`: 会被替换为结构体名称
+
+**配置示例：**
+
+```yaml
+options:
+  # 默认格式：UsersDAO, ProductsDAO
+  namespace_format: "{struct}DAO"
+  
+  # 自定义格式：UsersMapper, ProductsMapper  
+  namespace_format: "{struct}Mapper"
+  
+  # 带包名格式：com.example.UsersDAO
+  namespace_format: "com.example.{struct}DAO"
+  
+  # 仅结构体名：Users, Products
+  namespace_format: "{struct}"
+```
+
+**生成的 XML 示例：**
+
+```xml
+<!-- namespace_format: "{struct}DAO" -->
+<mapper namespace="UsersDAO">
+
+<!-- namespace_format: "{struct}Mapper" -->
+<mapper namespace="UsersMapper">
+
+<!-- namespace_format: "com.example.{struct}DAO" -->
+<mapper namespace="com.example.UsersDAO">
+```
 
 详细配置选项请参考 [配置文档](docs/config.md)。
 

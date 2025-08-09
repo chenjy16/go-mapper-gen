@@ -36,9 +36,11 @@ type TablesConfig struct {
 
 // OptionsConfig 生成选项
 type OptionsConfig struct {
-	GenerateDAO bool `mapstructure:"generate_dao" yaml:"generate_dao"` // 生成 DAO
-	GenerateSQL bool `mapstructure:"generate_sql" yaml:"generate_sql"` // 生成 SQL
-	JSONTag     bool `mapstructure:"json_tag" yaml:"json_tag"`         // JSON 标签
+	GenerateDAO     bool   `mapstructure:"generate_dao" yaml:"generate_dao"`         // 生成 DAO
+	GenerateSQL     bool   `mapstructure:"generate_sql" yaml:"generate_sql"`         // 生成 SQL
+	JSONTag         bool   `mapstructure:"json_tag" yaml:"json_tag"`                 // JSON 标签
+	GenerateExample bool   `mapstructure:"generate_example" yaml:"generate_example"` // 生成 Example 方法
+	NamespaceFormat string `mapstructure:"namespace_format" yaml:"namespace_format"` // XML namespace 格式模板，支持 {struct} 占位符
 }
 
 // LoadConfig 加载配置
@@ -63,6 +65,8 @@ func setDefaults() {
 	viper.SetDefault("options.generate_dao", true)
 	viper.SetDefault("options.generate_sql", true)
 	viper.SetDefault("options.json_tag", true)
+	viper.SetDefault("options.generate_example", true)
+	viper.SetDefault("options.namespace_format", "{struct}DAO") // 默认格式：结构体名 + DAO
 }
 
 // Validate 验证配置

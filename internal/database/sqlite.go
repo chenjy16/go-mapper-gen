@@ -173,6 +173,8 @@ func sqliteTypeToGoType(sqliteType string, nullable bool) string {
 		}
 	case strings.Contains(baseType, "real") || strings.Contains(baseType, "float") || strings.Contains(baseType, "double"):
 		goType = "float64"
+	case strings.Contains(baseType, "decimal") || strings.Contains(baseType, "numeric"):
+		goType = "float64"
 	case strings.Contains(baseType, "text") || strings.Contains(baseType, "char") || strings.Contains(baseType, "varchar"):
 		goType = "string"
 	case strings.Contains(baseType, "blob"):

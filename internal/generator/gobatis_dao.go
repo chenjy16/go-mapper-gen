@@ -23,14 +23,15 @@ func NewGobatisDAOGenerator(cfg *config.Config) *GobatisDAOGenerator {
 
 // GobatisDAOData gobatis DAO 模板数据
 type GobatisDAOData struct {
-	Package       string
-	ModelPackage  string
-	DAOName       string
-	StructName    string
-	TableName     string
-	PrimaryKey    FieldData
-	Fields        []FieldData
-	HasPrimaryKey bool
+	Package         string
+	ModelPackage    string
+	DAOName         string
+	StructName      string
+	TableName       string
+	PrimaryKey      FieldData
+	Fields          []FieldData
+	HasPrimaryKey   bool
+	GenerateExample bool
 }
 
 // Generate 生成 Gobatis DAO 代码
@@ -63,12 +64,16 @@ func (gdg *GobatisDAOGenerator) Generate(table database.Table, outputDir string)
 func (gdg *GobatisDAOGenerator) prepareTemplateData(table database.Table) GobatisDAOData {
 	structName := toPascalCase(removeTablePrefix(table.Name, gdg.config.Tables.Prefix))
 	
+	// 构建相对路径的 model 包导入路径
+	modelPackage := "../model"
+	
 	data := GobatisDAOData{
-		Package:      "dao",
-		ModelPackage: "generated_gobatis/model",
-		DAOName:      structName + "DAO",
-		StructName:   structName,
-		TableName:    table.Name,
+		Package:         "dao",
+		ModelPackage:    modelPackage,
+		DAOName:         structName + "DAO",
+		StructName:      structName,
+		TableName:       table.Name,
+		GenerateExample: gdg.config.Options.GenerateExample,
 	}
 	
 	// 处理字段
@@ -96,89 +101,164 @@ func (gdg *GobatisDAOGenerator) generateInterfaceCode(data GobatisDAOData) (stri
 	tmpl := `package {{ .Package }}
 
 import (
-	"context"
-	model "{{ .ModelPackage }}"
+	model "{{ .ModelPackage }}"{{ if .GenerateExample }}
+	"github.com/chenjy16/gobatis/core/example"{{ end }}
 )
 
 // {{ .DAOName }} {{ .StructName }} 数据访问接口
-// 符合 Gobatis 框架规范的方法命名和参数定义
+// 严格遵循 GoBatis 框架方法命名规则和返回值规范
 type {{ .DAOName }} interface {
-	// Insert 方法 - 插入操作
+	// 插入方法 (INSERT) - 返回影响行数
 	// Insert 插入单个{{ .StructName }}记录
-	Insert(ctx context.Context, record *model.{{ .StructName }}) error
+	Insert(record *model.{{ .StructName }}) (int64, error)
 	
 	// InsertBatch 批量插入{{ .StructName }}记录
-	InsertBatch(ctx context.Context, records []*model.{{ .StructName }}) error
+	InsertBatch(records []*model.{{ .StructName }}) (int64, error)
+	
+	// Add 添加{{ .StructName }}记录 (Insert 的别名)
+	Add(record *model.{{ .StructName }}) (int64, error)
+	
+	// Create 创建{{ .StructName }}记录 (Insert 的别名)
+	Create(record *model.{{ .StructName }}) (int64, error)
+	
+	// Save 保存{{ .StructName }}记录 (Insert 的别名)
+	Save(record *model.{{ .StructName }}) (int64, error)
 
 {{ if .HasPrimaryKey }}
-	// Select 方法 - 查询操作
-	// SelectById 根据主键查询{{ .StructName }}
-	SelectById(ctx context.Context, {{ toLower .PrimaryKey.Name }} {{ .PrimaryKey.Type }}) (*model.{{ .StructName }}, error)
+	// 查询方法 (SELECT) - 返回查询结果
+	// GetById 根据主键获取{{ .StructName }}
+	GetById({{ toLower .PrimaryKey.Name }} {{ .PrimaryKey.Type }}) (*model.{{ .StructName }}, error)
 	
-	// Update 方法 - 更新操作
-	// UpdateById 根据主键更新{{ .StructName }}
-	UpdateById(ctx context.Context, record *model.{{ .StructName }}) error
+	// FindById 根据主键查找{{ .StructName }} (GetById 的别名)
+	FindById({{ toLower .PrimaryKey.Name }} {{ .PrimaryKey.Type }}) (*model.{{ .StructName }}, error)
 	
-	// Delete 方法 - 删除操作
-	// DeleteById 根据主键删除{{ .StructName }}
-	DeleteById(ctx context.Context, {{ toLower .PrimaryKey.Name }} {{ .PrimaryKey.Type }}) error
-	
-	// DeleteByIds 根据主键列表批量删除{{ .StructName }}
-	DeleteByIds(ctx context.Context, {{ toLower .PrimaryKey.Name }}s []{{ .PrimaryKey.Type }}) error
+	// SelectById 根据主键选择{{ .StructName }} (GetById 的别名)
+	SelectById({{ toLower .PrimaryKey.Name }} {{ .PrimaryKey.Type }}) (*model.{{ .StructName }}, error)
 {{ end }}
 
-	// SelectAll 查询所有{{ .StructName }}记录
-	SelectAll(ctx context.Context) ([]*model.{{ .StructName }}, error)
+	// GetAll 获取所有{{ .StructName }}记录
+	GetAll() ([]*model.{{ .StructName }}, error)
 	
-	// SelectByPage 分页查询{{ .StructName }}记录
-	SelectByPage(ctx context.Context, offset, limit int) ([]*model.{{ .StructName }}, error)
+	// FindAll 查找所有{{ .StructName }}记录 (GetAll 的别名)
+	FindAll() ([]*model.{{ .StructName }}, error)
 	
-	// Count 统计{{ .StructName }}记录总数
-	Count(ctx context.Context) (int64, error)
+	// SelectAll 选择所有{{ .StructName }}记录 (GetAll 的别名)
+	SelectAll() ([]*model.{{ .StructName }}, error)
 	
-	// SelectByCondition 根据条件动态查询{{ .StructName }}记录
-	SelectByCondition(ctx context.Context, condition map[string]interface{}) ([]*model.{{ .StructName }}, error)
+	// ListAll 列出所有{{ .StructName }}记录 (GetAll 的别名)
+	ListAll() ([]*model.{{ .StructName }}, error)
+	
+	// QueryAll 查询所有{{ .StructName }}记录 (GetAll 的别名)
+	QueryAll() ([]*model.{{ .StructName }}, error)
+	
+	// GetByPage 分页获取{{ .StructName }}记录
+	GetByPage(offset, limit int) ([]*model.{{ .StructName }}, error)
+	
+	// FindByPage 分页查找{{ .StructName }}记录 (GetByPage 的别名)
+	FindByPage(offset, limit int) ([]*model.{{ .StructName }}, error)
+	
+	// SelectByPage 分页选择{{ .StructName }}记录 (GetByPage 的别名)
+	SelectByPage(offset, limit int) ([]*model.{{ .StructName }}, error)
+	
+	// GetByCondition 根据条件获取{{ .StructName }}记录
+	GetByCondition(condition map[string]interface{}) ([]*model.{{ .StructName }}, error)
+	
+	// FindByCondition 根据条件查找{{ .StructName }}记录 (GetByCondition 的别名)
+	FindByCondition(condition map[string]interface{}) ([]*model.{{ .StructName }}, error)
+	
+	// SelectByCondition 根据条件选择{{ .StructName }}记录 (GetByCondition 的别名)
+	SelectByCondition(condition map[string]interface{}) ([]*model.{{ .StructName }}, error)
+	
+	// QueryByCondition 根据条件查询{{ .StructName }}记录 (GetByCondition 的别名)
+	QueryByCondition(condition map[string]interface{}) ([]*model.{{ .StructName }}, error)
+
+	// 统计方法 - 返回数量
+	// GetCount 获取{{ .StructName }}记录总数
+	GetCount() (int64, error)
+	
+	// Count 统计{{ .StructName }}记录总数 (GetCount 的别名)
+	Count() (int64, error)
 	
 	// CountByCondition 根据条件统计{{ .StructName }}记录数
-	CountByCondition(ctx context.Context, condition map[string]interface{}) (int64, error)
+	CountByCondition(condition map[string]interface{}) (int64, error)
 
 {{ if .HasPrimaryKey }}
-	// ExistsById 检查指定主键的{{ .StructName }}记录是否存在
-	ExistsById(ctx context.Context, {{ toLower .PrimaryKey.Name }} {{ .PrimaryKey.Type }}) (bool, error)
+	// 存在性检查方法 - 返回布尔值
+	// GetExistsById 检查指定主键的{{ .StructName }}记录是否存在
+	GetExistsById({{ toLower .PrimaryKey.Name }} {{ .PrimaryKey.Type }}) (bool, error)
 {{ end }}
 
-	// 兼容性方法 - 保持向后兼容
-	// Create 创建{{ .StructName }} (兼容方法，内部调用 Insert)
-	Create(ctx context.Context, {{ toLower .StructName }} *model.{{ .StructName }}) error
-
-	// CreateBatch 批量创建{{ .StructName }} (兼容方法，内部调用 InsertBatch)
-	CreateBatch(ctx context.Context, {{ toLower .StructName }}s []*model.{{ .StructName }}) error
-
+	// 更新方法 (UPDATE) - 返回影响行数
 {{ if .HasPrimaryKey }}
-	// GetByID 根据ID获取{{ .StructName }} (兼容方法，内部调用 SelectById)
-	GetByID(ctx context.Context, {{ toLower .PrimaryKey.Name }} {{ .PrimaryKey.Type }}) (*model.{{ .StructName }}, error)
-
-	// UpdateByID 根据ID更新{{ .StructName }} (兼容方法，内部调用 UpdateById)
-	UpdateByID(ctx context.Context, {{ toLower .StructName }} *model.{{ .StructName }}) error
-
-	// DeleteByID 根据ID删除{{ .StructName }} (兼容方法，内部调用 DeleteById)
-	DeleteByID(ctx context.Context, {{ toLower .PrimaryKey.Name }} {{ .PrimaryKey.Type }}) error
-
-	// DeleteByIDs 根据ID列表批量删除{{ .StructName }} (兼容方法，内部调用 DeleteByIds)
-	DeleteByIDs(ctx context.Context, {{ toLower .PrimaryKey.Name }}s []{{ .PrimaryKey.Type }}) error
-
-	// Exists 检查{{ .StructName }}是否存在 (兼容方法，内部调用 ExistsById)
-	Exists(ctx context.Context, {{ toLower .PrimaryKey.Name }} {{ .PrimaryKey.Type }}) (bool, error)
+	// UpdateById 根据主键更新{{ .StructName }}
+	UpdateById(record *model.{{ .StructName }}) (int64, error)
+	
+	// ModifyById 根据主键修改{{ .StructName }} (UpdateById 的别名)
+	ModifyById(record *model.{{ .StructName }}) (int64, error)
+	
+	// EditById 根据主键编辑{{ .StructName }} (UpdateById 的别名)
+	EditById(record *model.{{ .StructName }}) (int64, error)
 {{ end }}
 
-	// GetAll 获取所有{{ .StructName }} (兼容方法，内部调用 SelectAll)
-	GetAll(ctx context.Context) ([]*model.{{ .StructName }}, error)
+	// UpdateByCondition 根据条件更新{{ .StructName }}记录
+	UpdateByCondition(record *model.{{ .StructName }}, condition map[string]interface{}) (int64, error)
 
-	// GetByPage 分页获取{{ .StructName }} (兼容方法，内部调用 SelectByPage)
-	GetByPage(ctx context.Context, offset, limit int) ([]*model.{{ .StructName }}, error)
+	// 删除方法 (DELETE) - 返回影响行数
+{{ if .HasPrimaryKey }}
+	// DeleteById 根据主键删除{{ .StructName }}
+	DeleteById({{ toLower .PrimaryKey.Name }} {{ .PrimaryKey.Type }}) (int64, error)
+	
+	// RemoveById 根据主键移除{{ .StructName }} (DeleteById 的别名)
+	RemoveById({{ toLower .PrimaryKey.Name }} {{ .PrimaryKey.Type }}) (int64, error)
+	
+	// DeleteByIds 根据主键列表批量删除{{ .StructName }}
+	DeleteByIds({{ toLower .PrimaryKey.Name }}s []{{ .PrimaryKey.Type }}) (int64, error)
+	
+	// RemoveByIds 根据主键列表批量移除{{ .StructName }} (DeleteByIds 的别名)
+	RemoveByIds({{ toLower .PrimaryKey.Name }}s []{{ .PrimaryKey.Type }}) (int64, error)
+{{ end }}
 
-	// FindByCondition 动态条件查询{{ .StructName }} (兼容方法，内部调用 SelectByCondition)
-	FindByCondition(ctx context.Context, condition map[string]interface{}) ([]*model.{{ .StructName }}, error)
+	// DeleteByCondition 根据条件删除{{ .StructName }}记录
+	DeleteByCondition(condition map[string]interface{}) (int64, error)
+	
+	// RemoveByCondition 根据条件移除{{ .StructName }}记录 (DeleteByCondition 的别名)
+	RemoveByCondition(condition map[string]interface{}) (int64, error)
+
+{{ if .GenerateExample }}
+	// Example 查询方法 - 支持 GoBatis Example 功能
+	// GetByExample 根据 Example 条件获取{{ .StructName }}记录
+	GetByExample(example *example.Example) ([]*model.{{ .StructName }}, error)
+	
+	// FindByExample 根据 Example 条件查找{{ .StructName }}记录 (GetByExample 的别名)
+	FindByExample(example *example.Example) ([]*model.{{ .StructName }}, error)
+	
+	// SelectByExample 根据 Example 条件选择{{ .StructName }}记录 (GetByExample 的别名)
+	SelectByExample(example *example.Example) ([]*model.{{ .StructName }}, error)
+	
+	// QueryByExample 根据 Example 条件查询{{ .StructName }}记录 (GetByExample 的别名)
+	QueryByExample(example *example.Example) ([]*model.{{ .StructName }}, error)
+	
+	// ListByExample 根据 Example 条件列出{{ .StructName }}记录 (GetByExample 的别名)
+	ListByExample(example *example.Example) ([]*model.{{ .StructName }}, error)
+	
+	// CountByExample 根据 Example 条件统计{{ .StructName }}记录数
+	CountByExample(example *example.Example) (int64, error)
+	
+	// UpdateByExample 根据 Example 条件更新{{ .StructName }}记录
+	UpdateByExample(record *model.{{ .StructName }}, example *example.Example) (int64, error)
+	
+	// ModifyByExample 根据 Example 条件修改{{ .StructName }}记录 (UpdateByExample 的别名)
+	ModifyByExample(record *model.{{ .StructName }}, example *example.Example) (int64, error)
+	
+	// EditByExample 根据 Example 条件编辑{{ .StructName }}记录 (UpdateByExample 的别名)
+	EditByExample(record *model.{{ .StructName }}, example *example.Example) (int64, error)
+	
+	// DeleteByExample 根据 Example 条件删除{{ .StructName }}记录
+	DeleteByExample(example *example.Example) (int64, error)
+	
+	// RemoveByExample 根据 Example 条件移除{{ .StructName }}记录 (DeleteByExample 的别名)
+	RemoveByExample(example *example.Example) (int64, error)
+{{ end }}
 }
 `
 	

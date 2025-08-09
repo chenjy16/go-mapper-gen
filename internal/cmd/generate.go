@@ -43,6 +43,7 @@ func init() {
 	generateCmd.Flags().Bool("dao", true, "生成 DAO 层代码")
 	generateCmd.Flags().Bool("sql", true, "生成 SQL 语句")
 	generateCmd.Flags().Bool("json-tag", true, "生成 JSON 标签")
+	generateCmd.Flags().Bool("example", true, "生成 Example 方法 (支持 Gobatis v1.1.0)")
 	
 	// 绑定到 viper
 	viper.BindPFlag("database.driver", generateCmd.Flags().Lookup("driver"))
@@ -55,6 +56,7 @@ func init() {
 	viper.BindPFlag("options.generate_dao", generateCmd.Flags().Lookup("dao"))
 	viper.BindPFlag("options.generate_sql", generateCmd.Flags().Lookup("sql"))
 	viper.BindPFlag("options.json_tag", generateCmd.Flags().Lookup("json-tag"))
+	viper.BindPFlag("options.generate_example", generateCmd.Flags().Lookup("example"))
 }
 
 func runGenerate() {

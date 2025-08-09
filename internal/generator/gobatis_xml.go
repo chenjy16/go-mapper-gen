@@ -23,13 +23,14 @@ func NewGobatisXMLGenerator(cfg *config.Config) *GobatisXMLGenerator {
 
 // GobatisXMLData gobatis XML 模板数据
 type GobatisXMLData struct {
-	Namespace     string
-	DAOName       string
-	StructName    string
-	TableName     string
-	PrimaryKey    FieldData
-	Fields        []FieldData
-	HasPrimaryKey bool
+	Namespace       string
+	DAOName         string
+	StructName      string
+	TableName       string
+	PrimaryKey      FieldData
+	Fields          []FieldData
+	HasPrimaryKey   bool
+	GenerateExample bool
 }
 
 // Generate 生成 gobatis XML 映射文件
@@ -60,15 +61,31 @@ func (gxg *GobatisXMLGenerator) Generate(table database.Table) error {
 	return nil
 }
 
+// generateNamespace 生成namespace，支持自定义格式
+func (gxg *GobatisXMLGenerator) generateNamespace(structName string) string {
+	format := gxg.config.Options.NamespaceFormat
+	if format == "" {
+		format = "{struct}DAO" // 默认格式
+	}
+	
+	// 替换占位符
+	namespace := strings.ReplaceAll(format, "{struct}", structName)
+	return namespace
+}
+
 // prepareTemplateData 准备模板数据
 func (gxg *GobatisXMLGenerator) prepareTemplateData(table database.Table) GobatisXMLData {
 	structName := toPascalCase(removeTablePrefix(table.Name, gxg.config.Tables.Prefix))
 	
+	// 生成namespace，支持自定义格式
+	namespace := gxg.generateNamespace(structName)
+	
 	data := GobatisXMLData{
-		Namespace:  structName + "DAO",
-		DAOName:    structName + "DAO",
-		StructName: structName,
-		TableName:  table.Name,
+		Namespace:       namespace,
+		DAOName:         structName + "DAO",
+		StructName:      structName,
+		TableName:       table.Name,
+		GenerateExample: gxg.config.Options.GenerateExample,
 	}
 	
 	// 处理字段
@@ -335,10 +352,151 @@ func (gxg *GobatisXMLGenerator) generateXMLCode(data GobatisXMLData) (string, er
         ORDER BY {{ if .HasPrimaryKey }}{{ .PrimaryKey.ColumnName }}{{ else }}{{ (index .Fields 0).ColumnName }}{{ end }}
     </select>
 
+{{ if .GenerateExample }}
+    <!-- Example 方法 - 基于 Example 的查询操作 -->
+    <!-- SelectByExample 根据Example条件查询{{ .StructName }}记录 -->
+    <select id="SelectByExample" parameterType="github.com/chenjy16/gobatis/core/example.Example" resultMap="{{ .StructName }}ResultMap">
+        SELECT 
+            <include refid="Base_Column_List" />
+        FROM {{ .TableName }}
+        <where>
+            <if test="criteria != null and criteria.size() > 0">
+                <foreach collection="criteria" item="criterion" separator="AND">
+                    <choose>
+                        <when test="criterion.noValue">
+                            ${criterion.condition}
+                        </when>
+                        <when test="criterion.singleValue">
+                            ${criterion.condition} #{{"{"}}criterion.value{{"}"}}
+                        </when>
+                        <when test="criterion.betweenValue">
+                            ${criterion.condition} #{{"{"}}criterion.value{{"}"}} AND #{{"{"}}criterion.secondValue{{"}"}}
+                        </when>
+                        <when test="criterion.listValue">
+                            ${criterion.condition}
+                            <foreach collection="criterion.value" item="listItem" open="(" separator="," close=")">
+                                #{{"{"}}listItem{{"}"}}
+                            </foreach>
+                        </when>
+                    </choose>
+                </foreach>
+            </if>
+        </where>
+        <if test="orderByClause != null and orderByClause != ''">
+            ORDER BY ${orderByClause}
+        </if>
+        <if test="limit != null">
+            LIMIT #{{"{"}}limit{{"}"}}
+        </if>
+        <if test="offset != null">
+            OFFSET #{{"{"}}offset{{"}"}}
+        </if>
+    </select>
+
+    <!-- CountByExample 根据Example条件统计{{ .StructName }}记录数 -->
+    <select id="CountByExample" parameterType="github.com/chenjy16/gobatis/core/example.Example" resultType="int64">
+        SELECT COUNT(1)
+        FROM {{ .TableName }}
+        <where>
+            <if test="criteria != null and criteria.size() > 0">
+                <foreach collection="criteria" item="criterion" separator="AND">
+                    <choose>
+                        <when test="criterion.noValue">
+                            ${criterion.condition}
+                        </when>
+                        <when test="criterion.singleValue">
+                            ${criterion.condition} #{{"{"}}criterion.value{{"}"}}
+                        </when>
+                        <when test="criterion.betweenValue">
+                            ${criterion.condition} #{{"{"}}criterion.value{{"}"}} AND #{{"{"}}criterion.secondValue{{"}"}}
+                        </when>
+                        <when test="criterion.listValue">
+                            ${criterion.condition}
+                            <foreach collection="criterion.value" item="listItem" open="(" separator="," close=")">
+                                #{{"{"}}listItem{{"}"}}
+                            </foreach>
+                        </when>
+                    </choose>
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <!-- UpdateByExample 根据 Example 更新{{ .StructName }}记录 -->
+    <update id="UpdateByExample" parameterType="map">
+        UPDATE {{ .TableName }}
+        <set>
+            {{ range .Fields }}{{ if not .IsPrimaryKey }}
+            <if test="record.{{ .Name }} != null">
+                {{ .ColumnName }} = #{{"{"}}record.{{ .Name }}{{"}"}}{{ if not (eq . (index $.Fields (sub (len $.Fields) 1))) }},{{ end }}
+            </if>
+            {{ end }}{{ end }}
+        </set>
+        <where>
+            <if test="example.criteria != null and example.criteria.size() > 0">
+                <foreach collection="example.criteria" item="criterion" separator="AND">
+                    <choose>
+                        <when test="criterion.noValue">
+                            ${criterion.condition}
+                        </when>
+                        <when test="criterion.singleValue">
+                            ${criterion.condition} #{{"{"}}criterion.value{{"}"}}
+                        </when>
+                        <when test="criterion.betweenValue">
+                            ${criterion.condition} #{{"{"}}criterion.value{{"}"}} AND #{{"{"}}criterion.secondValue{{"}"}}
+                        </when>
+                        <when test="criterion.listValue">
+                            ${criterion.condition}
+                            <foreach collection="criterion.value" item="listItem" open="(" separator="," close=")">
+                                #{{"{"}}listItem{{"}"}}
+                            </foreach>
+                        </when>
+                    </choose>
+                </foreach>
+            </if>
+        </where>
+    </update>
+
+    <!-- DeleteByExample 根据Example条件删除{{ .StructName }}记录 -->
+    <delete id="DeleteByExample" parameterType="github.com/chenjy16/gobatis/core/example.Example">
+        DELETE FROM {{ .TableName }}
+        <where>
+            <if test="criteria != null and criteria.size() > 0">
+                <foreach collection="criteria" item="criterion" separator="AND">
+                    <choose>
+                        <when test="criterion.noValue">
+                            ${criterion.condition}
+                        </when>
+                        <when test="criterion.singleValue">
+                            ${criterion.condition} #{{"{"}}criterion.value{{"}"}}
+                        </when>
+                        <when test="criterion.betweenValue">
+                            ${criterion.condition} #{{"{"}}criterion.value{{"}"}} AND #{{"{"}}criterion.secondValue{{"}"}}
+                        </when>
+                        <when test="criterion.listValue">
+                            ${criterion.condition}
+                            <foreach collection="criterion.value" item="listItem" open="(" separator="," close=")">
+                                #{{"{"}}listItem{{"}"}}
+                            </foreach>
+                        </when>
+                    </choose>
+                </foreach>
+            </if>
+        </where>
+    </delete>
+{{ end }}
+
 </mapper>
 `
 	
-	t, err := template.New("gobatis_xml").Parse(tmpl)
+	// 添加模板函数
+	funcMap := template.FuncMap{
+		"sub": func(a, b int) int {
+			return a - b
+		},
+	}
+	
+	t, err := template.New("gobatis_xml").Funcs(funcMap).Parse(tmpl)
 	if err != nil {
 		return "", fmt.Errorf("解析 XML 模板失败: %w", err)
 	}
