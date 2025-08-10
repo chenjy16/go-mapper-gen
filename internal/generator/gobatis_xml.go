@@ -355,7 +355,7 @@ func (gxg *GobatisXMLGenerator) generateXMLCode(data GobatisXMLData) (string, er
 {{ if .GenerateExample }}
     <!-- Example 方法 - 基于 Example 的查询操作 -->
     <!-- SelectByExample 根据Example条件查询{{ .StructName }}记录 -->
-    <select id="SelectByExample" parameterType="github.com/chenjy16/gobatis/core/example.Example" resultMap="{{ .StructName }}ResultMap">
+    <select id="SelectByExample" parameterType="gobatis/core/example.Example" resultMap="{{ .StructName }}ResultMap">
         SELECT 
             <include refid="Base_Column_List" />
         FROM {{ .TableName }}
@@ -394,7 +394,7 @@ func (gxg *GobatisXMLGenerator) generateXMLCode(data GobatisXMLData) (string, er
     </select>
 
     <!-- CountByExample 根据Example条件统计{{ .StructName }}记录数 -->
-    <select id="CountByExample" parameterType="github.com/chenjy16/gobatis/core/example.Example" resultType="int64">
+    <select id="CountByExample" parameterType="gobatis/core/example.Example" resultType="int64">
         SELECT COUNT(1)
         FROM {{ .TableName }}
         <where>
@@ -458,7 +458,7 @@ func (gxg *GobatisXMLGenerator) generateXMLCode(data GobatisXMLData) (string, er
     </update>
 
     <!-- DeleteByExample 根据Example条件删除{{ .StructName }}记录 -->
-    <delete id="DeleteByExample" parameterType="github.com/chenjy16/gobatis/core/example.Example">
+    <delete id="DeleteByExample" parameterType="gobatis/core/example.Example">
         DELETE FROM {{ .TableName }}
         <where>
             <if test="criteria != null and criteria.size() > 0">

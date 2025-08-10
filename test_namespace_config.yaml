@@ -1,0 +1,20 @@
+database:
+  driver: sqlite
+  dsn: "./examples/example.db"
+
+output:
+  dir: "./test_generated2"
+  package: "model"
+
+tables:
+  include: ["users"]
+  exclude: []
+  prefix: ""
+
+options:
+  generate_dao: true
+  generate_sql: true
+  json_tag: true
+  generate_example: true
+  # 测试带包名的namespace格式
+  namespace_format: "com.example.{struct}DAO"

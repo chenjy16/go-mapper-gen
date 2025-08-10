@@ -64,8 +64,8 @@ func (gdg *GobatisDAOGenerator) Generate(table database.Table, outputDir string)
 func (gdg *GobatisDAOGenerator) prepareTemplateData(table database.Table) GobatisDAOData {
 	structName := toPascalCase(removeTablePrefix(table.Name, gdg.config.Tables.Prefix))
 	
-	// 构建相对路径的 model 包导入路径
-	modelPackage := "../model"
+	// 构建正确的模块路径
+	modelPackage := "go-mapper-gen/examples/generated/model"
 	
 	data := GobatisDAOData{
 		Package:         "dao",
@@ -102,7 +102,7 @@ func (gdg *GobatisDAOGenerator) generateInterfaceCode(data GobatisDAOData) (stri
 
 import (
 	model "{{ .ModelPackage }}"{{ if .GenerateExample }}
-	"github.com/chenjy16/gobatis/core/example"{{ end }}
+	"gobatis/core/example"{{ end }}
 )
 
 // {{ .DAOName }} {{ .StructName }} 数据访问接口

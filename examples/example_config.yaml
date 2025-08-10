@@ -1,6 +1,6 @@
 database:
   driver: sqlite
-  dsn: "./example.db"
+  dsn: "examples/example.db"
 
 output:
   dir: "./generated"
@@ -16,3 +16,4 @@ options:
   generate_sql: true
   json_tag: true
   generate_example: true  # 启用 Example 功能，支持复杂查询
+  namespace_format: "dao.{struct}DAO"  # XML namespace 格式：包名.DAO接口名

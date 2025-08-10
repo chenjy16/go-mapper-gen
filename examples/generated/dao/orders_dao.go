@@ -1,8 +1,8 @@
 package dao
 
 import (
-	model "../model"
-	"github.com/chenjy16/gobatis/core/example"
+	model "go-mapper-gen/examples/generated/model"
+	"gobatis/core/example"
 )
 
 // OrdersDAO Orders 数据访问接口

@@ -1,0 +1,439 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//gobatis.org//DTD Mapper 3.0//EN" "http://gobatis.org/dtd/gobatis-3-mapper.dtd">
+
+<mapper namespace="dao.OrderItemsDAO">
+
+    <!-- 结果映射 -->
+    <resultMap id="OrderItemsResultMap" type="OrderItems">
+        
+        
+        <id property="Id" column="id" />
+        
+        
+        
+        <result property="OrderId" column="order_id" />
+        
+        
+        
+        <result property="ProductId" column="product_id" />
+        
+        
+        
+        <result property="Quantity" column="quantity" />
+        
+        
+        
+        <result property="UnitPrice" column="unit_price" />
+        
+        
+        
+        <result property="TotalPrice" column="total_price" />
+        
+        
+        
+        <result property="CreatedAt" column="created_at" />
+        
+        
+    </resultMap>
+
+    <!-- 基础字段列表 -->
+    <sql id="Base_Column_List">
+        id, order_id, product_id, quantity, unit_price, total_price, created_at
+    </sql>
+
+    <!-- 插入字段列表（不包含主键） -->
+    <sql id="Insert_Column_List">order_id, product_id, quantity, unit_price, total_price, created_at
+    </sql>
+
+    <!-- 插入值列表（不包含主键） -->
+    <sql id="Insert_Value_List">#{OrderId}, #{ProductId}, #{Quantity}, #{UnitPrice}, #{TotalPrice}, #{CreatedAt}
+    </sql>
+
+    <!-- 更新字段列表（不包含主键） -->
+    <sql id="Update_Set_List">order_id = #{OrderId}, product_id = #{ProductId}, quantity = #{Quantity}, unit_price = #{UnitPrice}, total_price = #{TotalPrice}, created_at = #{CreatedAt}
+    </sql>
+
+    <!-- Insert 方法 - 插入操作 -->
+    <!-- Insert 插入单个OrderItems记录 -->
+    <insert id="Insert" parameterType="OrderItems">
+        INSERT INTO order_items (
+            <include refid="Insert_Column_List" />
+        ) VALUES (
+            <include refid="Insert_Value_List" />
+        )
+    </insert>
+
+    <!-- InsertBatch 批量插入OrderItems记录 -->
+    <insert id="InsertBatch" parameterType="map">
+        INSERT INTO order_items (
+            <include refid="Insert_Column_List" />
+        ) VALUES
+        <foreach collection="records" item="item" separator=",">
+            (#{item.OrderId}, #{item.ProductId}, #{item.Quantity}, #{item.UnitPrice}, #{item.TotalPrice}, #{item.CreatedAt})
+        </foreach>
+    </insert>
+
+    <!-- 兼容性方法 - Create -->
+    <insert id="Create" parameterType="OrderItems">
+        INSERT INTO order_items (
+            <include refid="Insert_Column_List" />
+        ) VALUES (
+            <include refid="Insert_Value_List" />
+        )
+    </insert>
+
+    <!-- 兼容性方法 - CreateBatch -->
+    <insert id="CreateBatch" parameterType="map">
+        INSERT INTO order_items (
+            <include refid="Insert_Column_List" />
+        ) VALUES
+        <foreach collection="Items" item="item" separator=",">
+            (#{item.OrderId}, #{item.ProductId}, #{item.Quantity}, #{item.UnitPrice}, #{item.TotalPrice}, #{item.CreatedAt})
+        </foreach>
+    </insert>
+
+    <!-- Select 方法 - 查询操作 -->
+
+    <!-- SelectById 根据ID查询OrderItems记录 -->
+    <select id="SelectById" parameterType="*int" resultMap="OrderItemsResultMap">
+        SELECT 
+            <include refid="Base_Column_List" />
+        FROM order_items
+        WHERE id = #{Id}
+    </select>
+
+
+    <!-- SelectAll 查询所有OrderItems记录 -->
+    <select id="SelectAll" resultMap="OrderItemsResultMap">
+        SELECT 
+            <include refid="Base_Column_List" />
+        FROM order_items
+        ORDER BY id
+    </select>
+
+    <!-- SelectByPage 分页查询OrderItems记录 -->
+    <select id="SelectByPage" parameterType="map" resultMap="OrderItemsResultMap">
+        SELECT 
+            <include refid="Base_Column_List" />
+        FROM order_items
+        ORDER BY id
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- SelectByCondition 根据条件查询OrderItems记录 -->
+    <select id="SelectByCondition" parameterType="map" resultMap="OrderItemsResultMap">
+        SELECT 
+            <include refid="Base_Column_List" />
+        FROM order_items
+        <where>
+            <if test="condition != null and condition != ''">
+                ${condition}
+            </if>
+        </where>
+        ORDER BY id
+    </select>
+
+    <!-- Update 方法 - 更新操作 -->
+
+    <!-- UpdateById 根据ID更新OrderItems记录 -->
+    <update id="UpdateById" parameterType="OrderItems">
+        UPDATE order_items
+        SET <include refid="Update_Set_List" />
+        WHERE id = #{Id}
+    </update>
+
+
+    <!-- Delete 方法 - 删除操作 -->
+
+    <!-- DeleteById 根据ID删除OrderItems记录 -->
+    <delete id="DeleteById" parameterType="*int">
+        DELETE FROM order_items
+        WHERE id = #{Id}
+    </delete>
+
+    <!-- DeleteByIds 根据ID列表批量删除OrderItems记录 -->
+    <delete id="DeleteByIds" parameterType="map">
+        DELETE FROM order_items
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!-- ExistsById 检查指定ID的OrderItems记录是否存在 -->
+    <select id="ExistsById" parameterType="*int" resultType="bool">
+        SELECT COUNT(1) > 0
+        FROM order_items
+        WHERE id = #{Id}
+    </select>
+
+
+    <!-- Count 方法 - 计数操作 -->
+    <!-- Count 获取OrderItems记录总数 -->
+    <select id="Count" resultType="int64">
+        SELECT COUNT(1)
+        FROM order_items
+    </select>
+
+    <!-- CountByCondition 根据条件获取OrderItems记录数量 -->
+    <select id="CountByCondition" parameterType="map" resultType="int64">
+        SELECT COUNT(1)
+        FROM order_items
+        <where>
+            <if test="condition != null and condition != ''">
+                ${condition}
+            </if>
+        </where>
+    </select>
+
+    <!-- 兼容性方法 -->
+
+    <!-- 兼容性方法 - GetByID -->
+    <select id="GetByID" parameterType="*int" resultMap="OrderItemsResultMap">
+        SELECT 
+            <include refid="Base_Column_List" />
+        FROM order_items
+        WHERE id = #{Id}
+    </select>
+
+    <!-- 兼容性方法 - UpdateByID -->
+    <update id="UpdateByID" parameterType="OrderItems">
+        UPDATE order_items
+        SET <include refid="Update_Set_List" />
+        WHERE id = #{Id}
+    </update>
+
+    <!-- 兼容性方法 - DeleteByID -->
+    <delete id="DeleteByID" parameterType="*int">
+        DELETE FROM order_items
+        WHERE id = #{Id}
+    </delete>
+
+    <!-- 兼容性方法 - DeleteByIDs -->
+    <delete id="DeleteByIDs" parameterType="map">
+        DELETE FROM order_items
+        WHERE id IN
+        <foreach collection="IDs" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!-- 兼容性方法 - Exists -->
+    <select id="Exists" parameterType="*int" resultType="int64">
+        SELECT COUNT(1)
+        FROM order_items
+        WHERE id = #{Id}
+    </select>
+
+
+    <!-- 兼容性方法 - GetAll -->
+    <select id="GetAll" resultMap="OrderItemsResultMap">
+        SELECT 
+            <include refid="Base_Column_List" />
+        FROM order_items
+        ORDER BY id
+    </select>
+
+    <!-- 兼容性方法 - GetByPage -->
+    <select id="GetByPage" parameterType="map" resultMap="OrderItemsResultMap">
+        SELECT 
+            <include refid="Base_Column_List" />
+        FROM order_items
+        ORDER BY id
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 兼容性方法 - FindByCondition -->
+    <select id="FindByCondition" parameterType="map" resultMap="OrderItemsResultMap">
+        SELECT 
+            <include refid="Base_Column_List" />
+        FROM order_items
+        <where>
+            
+            <if test="Id != null">
+                AND id = #{Id}
+            </if>
+            
+            <if test="OrderId != null">
+                AND order_id = #{OrderId}
+            </if>
+            
+            <if test="ProductId != null">
+                AND product_id = #{ProductId}
+            </if>
+            
+            <if test="Quantity != null">
+                AND quantity = #{Quantity}
+            </if>
+            
+            <if test="UnitPrice != null">
+                AND unit_price = #{UnitPrice}
+            </if>
+            
+            <if test="TotalPrice != null">
+                AND total_price = #{TotalPrice}
+            </if>
+            
+            <if test="CreatedAt != null">
+                AND created_at = #{CreatedAt}
+            </if>
+            
+        </where>
+        ORDER BY id
+    </select>
+
+
+    <!-- Example 方法 - 基于 Example 的查询操作 -->
+    <!-- SelectByExample 根据Example条件查询OrderItems记录 -->
+    <select id="SelectByExample" parameterType="gobatis/core/example.Example" resultMap="OrderItemsResultMap">
+        SELECT 
+            <include refid="Base_Column_List" />
+        FROM order_items
+        <where>
+            <if test="criteria != null and criteria.size() > 0">
+                <foreach collection="criteria" item="criterion" separator="AND">
+                    <choose>
+                        <when test="criterion.noValue">
+                            ${criterion.condition}
+                        </when>
+                        <when test="criterion.singleValue">
+                            ${criterion.condition} #{criterion.value}
+                        </when>
+                        <when test="criterion.betweenValue">
+                            ${criterion.condition} #{criterion.value} AND #{criterion.secondValue}
+                        </when>
+                        <when test="criterion.listValue">
+                            ${criterion.condition}
+                            <foreach collection="criterion.value" item="listItem" open="(" separator="," close=")">
+                                #{listItem}
+                            </foreach>
+                        </when>
+                    </choose>
+                </foreach>
+            </if>
+        </where>
+        <if test="orderByClause != null and orderByClause != ''">
+            ORDER BY ${orderByClause}
+        </if>
+        <if test="limit != null">
+            LIMIT #{limit}
+        </if>
+        <if test="offset != null">
+            OFFSET #{offset}
+        </if>
+    </select>
+
+    <!-- CountByExample 根据Example条件统计OrderItems记录数 -->
+    <select id="CountByExample" parameterType="gobatis/core/example.Example" resultType="int64">
+        SELECT COUNT(1)
+        FROM order_items
+        <where>
+            <if test="criteria != null and criteria.size() > 0">
+                <foreach collection="criteria" item="criterion" separator="AND">
+                    <choose>
+                        <when test="criterion.noValue">
+                            ${criterion.condition}
+                        </when>
+                        <when test="criterion.singleValue">
+                            ${criterion.condition} #{criterion.value}
+                        </when>
+                        <when test="criterion.betweenValue">
+                            ${criterion.condition} #{criterion.value} AND #{criterion.secondValue}
+                        </when>
+                        <when test="criterion.listValue">
+                            ${criterion.condition}
+                            <foreach collection="criterion.value" item="listItem" open="(" separator="," close=")">
+                                #{listItem}
+                            </foreach>
+                        </when>
+                    </choose>
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <!-- UpdateByExample 根据 Example 更新OrderItems记录 -->
+    <update id="UpdateByExample" parameterType="map">
+        UPDATE order_items
+        <set>
+            
+            <if test="record.OrderId != null">
+                order_id = #{record.OrderId},
+            </if>
+            
+            <if test="record.ProductId != null">
+                product_id = #{record.ProductId},
+            </if>
+            
+            <if test="record.Quantity != null">
+                quantity = #{record.Quantity},
+            </if>
+            
+            <if test="record.UnitPrice != null">
+                unit_price = #{record.UnitPrice},
+            </if>
+            
+            <if test="record.TotalPrice != null">
+                total_price = #{record.TotalPrice},
+            </if>
+            
+            <if test="record.CreatedAt != null">
+                created_at = #{record.CreatedAt}
+            </if>
+            
+        </set>
+        <where>
+            <if test="example.criteria != null and example.criteria.size() > 0">
+                <foreach collection="example.criteria" item="criterion" separator="AND">
+                    <choose>
+                        <when test="criterion.noValue">
+                            ${criterion.condition}
+                        </when>
+                        <when test="criterion.singleValue">
+                            ${criterion.condition} #{criterion.value}
+                        </when>
+                        <when test="criterion.betweenValue">
+                            ${criterion.condition} #{criterion.value} AND #{criterion.secondValue}
+                        </when>
+                        <when test="criterion.listValue">
+                            ${criterion.condition}
+                            <foreach collection="criterion.value" item="listItem" open="(" separator="," close=")">
+                                #{listItem}
+                            </foreach>
+                        </when>
+                    </choose>
+                </foreach>
+            </if>
+        </where>
+    </update>
+
+    <!-- DeleteByExample 根据Example条件删除OrderItems记录 -->
+    <delete id="DeleteByExample" parameterType="gobatis/core/example.Example">
+        DELETE FROM order_items
+        <where>
+            <if test="criteria != null and criteria.size() > 0">
+                <foreach collection="criteria" item="criterion" separator="AND">
+                    <choose>
+                        <when test="criterion.noValue">
+                            ${criterion.condition}
+                        </when>
+                        <when test="criterion.singleValue">
+                            ${criterion.condition} #{criterion.value}
+                        </when>
+                        <when test="criterion.betweenValue">
+                            ${criterion.condition} #{criterion.value} AND #{criterion.secondValue}
+                        </when>
+                        <when test="criterion.listValue">
+                            ${criterion.condition}
+                            <foreach collection="criterion.value" item="listItem" open="(" separator="," close=")">
+                                #{listItem}
+                            </foreach>
+                        </when>
+                    </choose>
+                </foreach>
+            </if>
+        </where>
+    </delete>
+
+
+</mapper>

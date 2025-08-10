@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//gobatis.org//DTD Mapper 3.0//EN" "http://gobatis.org/dtd/gobatis-3-mapper.dtd">
 
-<mapper namespace="OrdersDAO">
+<mapper namespace="dao.OrdersDAO">
 
     <!-- 结果映射 -->
     <resultMap id="OrdersResultMap" type="Orders">
@@ -293,7 +293,7 @@
 
     <!-- Example 方法 - 基于 Example 的查询操作 -->
     <!-- SelectByExample 根据Example条件查询Orders记录 -->
-    <select id="SelectByExample" parameterType="github.com/chenjy16/gobatis/core/example.Example" resultMap="OrdersResultMap">
+    <select id="SelectByExample" parameterType="gobatis/core/example.Example" resultMap="OrdersResultMap">
         SELECT 
             <include refid="Base_Column_List" />
         FROM orders
@@ -332,7 +332,7 @@
     </select>
 
     <!-- CountByExample 根据Example条件统计Orders记录数 -->
-    <select id="CountByExample" parameterType="github.com/chenjy16/gobatis/core/example.Example" resultType="int64">
+    <select id="CountByExample" parameterType="gobatis/core/example.Example" resultType="int64">
         SELECT COUNT(1)
         FROM orders
         <where>
@@ -420,7 +420,7 @@
     </update>
 
     <!-- DeleteByExample 根据Example条件删除Orders记录 -->
-    <delete id="DeleteByExample" parameterType="github.com/chenjy16/gobatis/core/example.Example">
+    <delete id="DeleteByExample" parameterType="gobatis/core/example.Example">
         DELETE FROM orders
         <where>
             <if test="criteria != null and criteria.size() > 0">
